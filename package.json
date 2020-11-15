@@ -1,0 +1,35 @@
+{
+  "name": "CryptoRSITracker",
+  "version": "1.0.0",
+  "description": "Simple tracker that connects to coinbase-pro websocket and triggers a webhook for buy or sell based on the RSI calculation",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poptartboy0/CryppledBot.git"
+  },
+  "keywords": [
+    "crypto",
+    "bot",
+    "coinbase-pro",
+    "btc"
+  ],
+  "author": "Pedro Piloto",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "coinbase-pro": "^0.9.0",
+    "dotenv": "^8.2.0",
+    "logzio-nodejs": "^2.0.2",
+    "pino": "^6.7.0",
+    "technicalindicators": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.13.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}
