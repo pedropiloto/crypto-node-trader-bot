@@ -1,17 +1,20 @@
 const CoinbasePro = require('coinbase-pro');
-const { RSI } = require('technicalindicators');
+const { RSI, BollingerBands } = require('technicalindicators');
 require('dotenv').config();
 const pino = require('pino');
+const newrelic = require('newrelic');
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const axios = require('axios');
 const logzio = require('logzio-nodejs').createLogger({
-  token: 'YOmGzYNdkNqanYXACMWWwjPeZoKIZfOv',
+  token: `${process.env.LOGZIO_TOKEN}`,
   protocol: 'https',
   host: 'listener.logz.io',
   port: '8071',
   type: 'nodejs',
 });
+
+const { memoryMetric, cpuUsageMetric } = require('./metric');
 
 const key = `${process.env.API_KEY}`;
 const secret = `${process.env.API_SECRET}`;
@@ -20,6 +23,9 @@ const ordersServiceUrl = `${process.env.ORDERS_SERVICE_URL}`;
 const baseCurrencyName = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrencyName = `${process.env.QUOTE_CURRENCY_NAME}`;
 const appName = `${process.env.APP_NAME}`;
+
+const OPERATIONAL_LOG_TYPE = 'OPERATIONAL_LOG_TYPE';
+const BUSINESS_LOG_TYPE = 'BUSINESS_LOG_TYPE';
 
 // const websocketURI = "wss://ws-feed.pro.coinbase.com";
 // const websocketURI = "wss://ws-feed-public.sandbox.pro.coinbase.com";
@@ -32,10 +38,25 @@ const productInfo = {
   productPairFriendlyName: baseCurrencyName + quoteCurrencyName,
 };
 
-function analyseRSI(value) {
+function log(params) {
+  if (params.type === BUSINESS_LOG_TYPE) {
+    logger.debug(JSON.stringify(params));
+  } else {
+    logger.info(JSON.stringify(params));
+  }
+  if (process.env.NODE_ENV === 'production') {
+    logzio.log(params);
+    if (params.type === BUSINESS_LOG_TYPE) {
+      newrelic.recordCustomEvent('BusinessEvent', params);
+    }
+    if (params.type === OPERATIONAL_LOG_TYPE) {
+      newrelic.recordCustomEvent('OperationalEvent', params);
+    }
+  }
+}
+
+function analyseRSI(value, currentPrice) {
   if (value <= 30) {
-    logger.debug('less or equal to 30, requesting order to buy ');
-    logzio.log({ message: 'less or equal to 30, requesting order to buy', app_name: appName });
     axios.post(ordersServiceUrl,
       {
         metric: 'RSI',
@@ -45,15 +66,16 @@ function analyseRSI(value) {
         metric_value: value,
       })
       .then((response) => {
-        logger.debug(`sucessfully requested a buy order:${JSON.stringify(response.data.success)}`);
-        logzio.log({ message: 'sucessfully requested a buy order', status: response.data.success, app_name: appName });
+        log({
+          message: 'sucessfully requested a buy order', status: response.data.success, action: 'BUY', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
       })
       .catch((error) => {
-        logger.debug(`error requesting a buy order:${error}`);
-        logzio.log({ message: 'error requesting buy order', error, app_name: appName });
+        log({
+          message: 'error requesting buy order', error, action: 'BUY', metric: 'RSI', value, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
       });
-  } else if (value >= 70) {
-    logger.debug('higher or equal to 70, requesting order to sell ');
+  } else if (value >= 66) {
     axios.post(ordersServiceUrl,
       {
         metric: 'RSI',
@@ -63,12 +85,37 @@ function analyseRSI(value) {
         metric_value: value,
       })
       .then((response) => {
-        logger.debug(`sucessfully requested a sell order:${JSON.stringify(response.data.success)}`);
-        logzio.log({ message: 'sucessfully requested a sell order', status: response.data.success, app_name: appName });
+        log({
+          message: 'sucessfully requested a sell order', status: response.data.success, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
       })
       .catch((error) => {
-        logger.debug(`error requesting a sell order: ${error}`);
-        logzio.log({ message: 'error requesting sell order', error, app_name: appName });
+        log({
+          message: 'error requesting sell order', error, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
+      });
+  }
+}
+
+function analyseUpperBB(value, currentPrice) {
+  if (currentPrice > value) {
+    axios.post(ordersServiceUrl,
+      {
+        metric: 'BB',
+        symbol: productInfo.productPairFriendlyName,
+        action: 'BUY',
+        platform: 'websocket-bot',
+        metric_value: value,
+      })
+      .then((response) => {
+        log({
+          message: 'sucessfully requested a buy order', status: response.data.success, action: 'BUY', metric: 'BB', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
+      })
+      .catch((error) => {
+        log({
+          message: 'error requesting buy order', error, action: 'BUY', metric: 'BB', value, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
       });
   }
 }
@@ -99,13 +146,13 @@ function listenForPriceUpdates(productPair) {
   websocket.on('error', (err) => {
     const message = 'Error occured in the websocket.';
     const errorMsg = new Error(err);
-    logger.error({ message, errorMsg, err });
+    log({ message, error: errorMsg, type: OPERATIONAL_LOG_TYPE });
     listenForPriceUpdates(productPair);
   });
 
   // Turn on the websocket for closes to restart it
   websocket.on('close', () => {
-    logger.debug('WebSocket closed, restarting...');
+    log({ message: 'WebSocket closed, restarting...', type: OPERATIONAL_LOG_TYPE });
     listenForPriceUpdates(productPair);
   });
 
@@ -113,19 +160,33 @@ function listenForPriceUpdates(productPair) {
   websocket.on('message', (data) => {
     if (data.type === 'ticker') {
       const currentPrice = parseFloat(data.price);
-      logger.debug(`Ticker price: ${currentPrice}`);
-      logzio.log({ message: 'Ticker price', current_price: currentPrice, app_name: appName });
+      log({
+        message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+      });
       priceArray.push(Number(currentPrice));
-      if (priceArray.length >= 600) {
-        logger.debug(`array filled length:${priceArray.length}`);
-        logzio.log({ message: 'Princings array', length: priceArray.length });
+      if (priceArray.length >= 2) {
+        log({
+          message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
         const rsi = RSI.calculate({
           values: priceArray,
           period: 14,
         });
-        logger.debug(`rsi value:${rsi[rsi.length - 1]}`);
-        logzio.log({ message: 'RSI calculated', rsi_value: rsi[rsi.length - 1], app_name: appName });
-        analyseRSI(rsi[rsi.length - 1]);
+        log({
+          message: 'RSI calculated', rsi_value: rsi[rsi.length - 1], app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
+        const bb = BollingerBands.calculate({
+          period: 14,
+          values: priceArray,
+          stdDev: 2,
+        });
+        analyseRSI(rsi[rsi.length - 1], currentPrice);
+        if (bb[bb.length - 1]) {
+          analyseUpperBB(bb[bb.length - 1].upper, currentPrice);
+        }
+        log({
+          message: 'BB calculated', bb_value: bb[bb.length - 1], app_name: appName, type: BUSINESS_LOG_TYPE,
+        });
       }
       if (priceArray.length >= 8640) {
         priceArray.shift();
@@ -135,16 +196,19 @@ function listenForPriceUpdates(productPair) {
 }
 
 try {
-  logger.debug('starting');
-  logzio.log({ message: 'starting', app_name: appName });
-
+  log({ message: 'starting', app_name: appName, type: OPERATIONAL_LOG_TYPE });
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);
+  if (process.env.NODE_ENV === 'production') {
+    memoryMetric();
+    cpuUsageMetric();
+  }
 } catch (error) {
   const message = 'Error occured in bot, shutting down. Check the logs for more information.';
   const errorMsg = new Error(error);
-  logzio.log({ message: 'Something went wrong and service needs to be restarted', error, app_name: appName });
+  log({
+    message, error: errorMsg, app_name: appName, type: OPERATIONAL_LOG_TYPE,
+  });
   logzio.sendAndClose();
-  logger.error({ message, errorMsg, error });
   process.exit(1);
 }
