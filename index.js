@@ -164,7 +164,7 @@ function listenForPriceUpdates(productPair) {
         message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
       });
       priceArray.push(Number(currentPrice));
-      if (priceArray.length >= 2) {
+      if (priceArray.length >= 600) {
         log({
           message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE,
         });
