@@ -46,11 +46,13 @@ function log(params) {
   }
   if (process.env.NODE_ENV === 'production') {
     logzio.log(params);
-    if (params.type === BUSINESS_LOG_TYPE) {
-      newrelic.recordCustomEvent('BusinessEvent', params);
-    }
-    if (params.type === OPERATIONAL_LOG_TYPE) {
-      newrelic.recordCustomEvent('OperationalEvent', params);
+    if (params.transactional_event) {
+      if (params.type === BUSINESS_LOG_TYPE) {
+        newrelic.recordCustomEvent('BusinessEvent', params);
+      }
+      if (params.type === OPERATIONAL_LOG_TYPE) {
+        newrelic.recordCustomEvent('OperationalEvent', params);
+      }
     }
   }
 }
@@ -67,12 +69,12 @@ function analyseRSI(value, currentPrice) {
       })
       .then((response) => {
         log({
-          message: 'sucessfully requested a buy order', status: response.data.success, action: 'BUY', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+          message: 'sucessfully requested a buy order', status: response.data.success, action: 'BUY', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
         });
       })
       .catch((error) => {
         log({
-          message: 'error requesting buy order', error, action: 'BUY', metric: 'RSI', value, app_name: appName, type: BUSINESS_LOG_TYPE,
+          message: 'error requesting buy order', error, action: 'BUY', metric: 'RSI', value, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
         });
       });
   } else if (value >= 66) {
@@ -86,12 +88,12 @@ function analyseRSI(value, currentPrice) {
       })
       .then((response) => {
         log({
-          message: 'sucessfully requested a sell order', status: response.data.success, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+          message: 'sucessfully requested a sell order', status: response.data.success, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
         });
       })
       .catch((error) => {
         log({
-          message: 'error requesting sell order', error, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+          message: 'error requesting sell order', error, action: 'SELL', metric: 'RSI', value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
         });
       });
   }
@@ -164,10 +166,10 @@ function listenForPriceUpdates(productPair) {
         message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
       });
       priceArray.push(Number(currentPrice));
+      log({
+        message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE,
+      });
       if (priceArray.length >= 600) {
-        log({
-          message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE,
-        });
         const rsi = RSI.calculate({
           values: priceArray,
           period: 14,
