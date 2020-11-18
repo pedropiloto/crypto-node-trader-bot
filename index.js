@@ -38,6 +38,8 @@ const productInfo = {
   productPairFriendlyName: baseCurrencyName + quoteCurrencyName,
 };
 
+const priceArray = [];
+
 function log(params) {
   if (params.type === BUSINESS_LOG_TYPE) {
     logger.debug(JSON.stringify(params));
@@ -128,7 +130,6 @@ function analyseUpperBB(value, currentPrice) {
  * @param {string} productPair
  */
 function listenForPriceUpdates(productPair) {
-  const priceArray = [];
   if (productPair == null) {
     throw new Error('Error in listenForPriceUpdates method. ProductPair is null!');
   }
