@@ -149,13 +149,15 @@ function listenForPriceUpdates(productPair) {
   websocket.on('error', (err) => {
     const message = 'Error occured in the websocket.';
     const errorMsg = new Error(err);
-    log({ message, error: errorMsg, type: OPERATIONAL_LOG_TYPE });
+    log({
+      message, error: errorMsg, type: OPERATIONAL_LOG_TYPE, transactional_event: true,
+    });
     listenForPriceUpdates(productPair);
   });
 
   // Turn on the websocket for closes to restart it
   websocket.on('close', () => {
-    log({ message: 'WebSocket closed, restarting...', type: OPERATIONAL_LOG_TYPE });
+    log({ message: 'WebSocket closed, restarting...', type: OPERATIONAL_LOG_TYPE, transactional_event: true });
     listenForPriceUpdates(productPair);
   });
 
@@ -168,7 +170,7 @@ function listenForPriceUpdates(productPair) {
       });
       priceArray.push(Number(currentPrice));
       log({
-        message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE,
+        message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
       });
       if (priceArray.length >= 600) {
         const rsi = RSI.calculate({
@@ -199,7 +201,9 @@ function listenForPriceUpdates(productPair) {
 }
 
 try {
-  log({ message: 'starting', app_name: appName, type: OPERATIONAL_LOG_TYPE });
+  log({
+    message: 'starting', app_name: appName, type: OPERATIONAL_LOG_TYPE, transactional_event: true,
+  });
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);
   if (process.env.NODE_ENV === 'production') {
@@ -210,7 +214,11 @@ try {
   const message = 'Error occured in bot, shutting down. Check the logs for more information.';
   const errorMsg = new Error(error);
   log({
-    message, error: errorMsg, app_name: appName, type: OPERATIONAL_LOG_TYPE,
+    message,
+    error: errorMsg,
+    app_name: appName,
+    type: OPERATIONAL_LOG_TYPE,
+    transactional_event: true,
   });
   logzio.sendAndClose();
   process.exit(1);
