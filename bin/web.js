@@ -28,7 +28,7 @@ mongoose.connection.on(
 
 );
 
-// Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
+Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
 
 app.use(bodyParser.json());
 
