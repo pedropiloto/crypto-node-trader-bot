@@ -126,7 +126,7 @@ function listenForPriceUpdates(productPair) {
       log({
         message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
       });
-      if (priceArray.length >= 2) {
+      if (priceArray.length >= 600) {
         const rsi = RSI.calculate({
           values: priceArray,
           period: 14,
