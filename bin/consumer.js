@@ -1,5 +1,5 @@
 const CoinbasePro = require('coinbase-pro');
-const { RSI, BollingerBands } = require('technicalindicators');
+
 require('dotenv').config();
 const Bugsnag = require('@bugsnag/js');
 const mongoose = require('../config/database');
@@ -11,6 +11,8 @@ const PlaceOrderInteractor = require('../interactors/place-order-interactor');
 
 const { memoryMetric, cpuUsageMetric } = require('../metric');
 const Product = require('../models/product');
+const CalculateRSIInteractor = require('../interactors/calculate-rsi-interactor');
+const CalculateBBInteractor = require('../interactors/calculate-bb-interactor');
 
 const key = `${process.env.API_KEY}`;
 const secret = `${process.env.API_SECRET}`;
@@ -26,8 +28,9 @@ const websocketURI = `${process.env.WEB_SOCKET_URI}`;
 const productInfo = new Product(
   baseCurrency, quoteCurrency,
 );
-const priceArray = [];
 const placeOrderInteractor = new PlaceOrderInteractor();
+const calculateRSIInteractor = new CalculateRSIInteractor(productInfo);
+const calculateBBInteractor = new CalculateBBInteractor(productInfo);
 
 async function trade(action, metric, value, currentPrice) {
   try {
@@ -65,7 +68,7 @@ function analyseRSI(value, currentPrice) {
 
 function analyseUpperBB(value, currentPrice) {
   if (currentPrice > value) {
-    trade(BUY_ACTION, 'BB', value, currentPrice);
+    trade(SELL_ACTION, 'BB', value, currentPrice);
   }
 }
 
@@ -116,40 +119,27 @@ function listenForPriceUpdates(productPair) {
   });
 
   // Turn on the websocket for messages
-  websocket.on('message', (data) => {
+  websocket.on('message', async (data) => {
     if (data.type === 'ticker') {
       const currentPrice = parseFloat(data.price);
       log({
         message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
       });
-      priceArray.push(Number(currentPrice));
+
+      const rsiValue = await calculateRSIInteractor.call();
+
       log({
-        message: 'Pricings array', length: priceArray.length, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
+        message: 'RSI calculated', rsi_value: Number(rsiValue), app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
       });
-      if (priceArray.length >= 600) {
-        const rsi = RSI.calculate({
-          values: priceArray,
-          period: 14,
-        });
-        log({
-          message: 'RSI calculated', rsi_value: rsi[rsi.length - 1], app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
-        });
-        const bb = BollingerBands.calculate({
-          period: 14,
-          values: priceArray,
-          stdDev: 2,
-        });
-        analyseRSI(rsi[rsi.length - 1], currentPrice);
-        if (bb[bb.length - 1]) {
-          analyseUpperBB(bb[bb.length - 1].upper, currentPrice);
-        }
-        log({
-          message: 'BB calculated', bb_value: bb[bb.length - 1], app_name: appName, type: BUSINESS_LOG_TYPE,
-        });
+      analyseRSI(rsiValue, currentPrice);
+      const bbValue = await calculateBBInteractor.call();
+      if (bbValue) {
+        analyseUpperBB(bbValue.upper, currentPrice);
       }
-      if (priceArray.length >= 8640) {
-        priceArray.shift();
-      }
+
+      log({
+        message: 'BB calculated', bb_value: bbValue, app_name: appName, type: BUSINESS_LOG_TYPE,
+      });
     }
   });
 }

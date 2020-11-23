@@ -9,6 +9,7 @@ const { log } = require('../utils/logger');
 const {
   OPERATIONAL_LOG_TYPE, ERROR_SEVERITY,
 } = require('../utils/constants');
+const auth = require('./middlewares/auth');
 
 // database configuration
 const app = express();
@@ -32,9 +33,9 @@ Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
 
 app.use(bodyParser.json());
 
-app.get('/trade', tradeController.getAll);
-app.post('/trade/actions/execute', tradeController.execute);
-app.get('/summary', tradeController.summary);
+app.get('/trade', auth, tradeController.getAll);
+app.post('/trade/actions/execute', auth, tradeController.execute);
+app.get('/summary', auth, tradeController.summary);
 
 // express doesn't consider not found 404 as an error so we need to handle 404 it explicitly
 // handle 404 error

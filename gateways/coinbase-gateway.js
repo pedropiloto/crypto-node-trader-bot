@@ -73,6 +73,12 @@ class CoinbaseGateway {
     });
   }
 
+  getCandlesOneMinute(symbol) {
+    return this.client.rest.product.getCandles(symbol, {
+      granularity: CandleGranularity.ONE_MINUTE,
+    });
+  }
+
   getCurrentFees() {
     return this.client.rest.fee.getCurrentFees();
   }

@@ -2777,6 +2777,14 @@ tough-cookie@^2.3.3, tough-cookie@~2.5.0:
     psl "^1.1.28"
     punycode "^2.1.1"
 
+trading-signals@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/trading-signals/-/trading-signals-1.2.0.tgz#fa96f251e0ffc68b5649ffa88033792216b82d9b"
+  integrity sha512-6bOHwUwe9DBJ4zYT1k2dID9SpgHe6pb1jFmwxbf+ln7d7KuFvOW+dLeT67ueiuBQHE6U7cHQV4wIIIV+lfhNxg==
+  dependencies:
+    "@types/big.js" "6.0.0"
+    big.js "6.0.2"
+
 tsconfig-paths@^3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.9.0.tgz#098547a6c4448807e8fcb8eae081064ee9a3c90b"
