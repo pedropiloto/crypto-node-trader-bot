@@ -135,13 +135,15 @@ function listenForPriceUpdates(productPair) {
         ).map((x) => x.close);
       } catch (error) {
         log({
-          message: `Error during fetching candles: ${error.stack}`,
+          message: `Error during fetching candles. Shuting down to prevent more errors: ${error.stack}`,
           app_name: appName,
           type: OPERATIONAL_LOG_TYPE,
           transactional_event: true,
           severity: ERROR_SEVERITY,
         });
         Bugsnag.notify(new Error(util.inspect(error)));
+        sendAndCloseLogzio();
+        process.exit(1);
       }
       if (values) {
         try {
