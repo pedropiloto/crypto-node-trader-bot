@@ -1,4 +1,5 @@
 const Bugsnag = require('@bugsnag/js');
+const util = require('util');
 const GenerateSummaryInteractor = require('../interactors/generate-summary-interactor');
 const LookupTradesInteractor = require('../interactors/lookup-trades-interactor');
 const { log } = require('../utils/logger');
@@ -22,7 +23,7 @@ const getAll = async (req, res) => {
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(error);
+    Bugsnag.notify(util.inspect(error));
   }
 };
 
@@ -60,7 +61,7 @@ const execute = async (req, res) => {
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(error);
+    Bugsnag.notify(util.inspect(error));
   }
 };
 
@@ -77,7 +78,7 @@ const summary = async (req, res) => {
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(error);
+    Bugsnag.notify(util.inspect(error));
   }
 };
 

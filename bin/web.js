@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const Bugsnag = require('@bugsnag/js');
+const util = require('util');
 const tradeController = require('../controllers/TradeController');
 const mongoose = require('../config/database');
 
@@ -24,7 +25,7 @@ mongoose.connection.on(
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(new Error('MongoDB connection error'));
+    Bugsnag.notify(util.inspect(new Error('MongoDB connection error')));
   },
 
 );

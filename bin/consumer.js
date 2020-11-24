@@ -1,4 +1,5 @@
 const CoinbasePro = require('coinbase-pro');
+const util = require('util');
 
 require('dotenv').config();
 const Bugsnag = require('@bugsnag/js');
@@ -56,7 +57,7 @@ async function trade(action, metric, value, currentPrice) {
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(error);
+    Bugsnag.notify(util.inspect(error));
   }
 }
 
@@ -82,7 +83,7 @@ function analyseUpperBB(value, currentPrice) {
 function listenForPriceUpdates(productPair) {
   if (productPair == null) {
     const error = new Error('Error in listenForPriceUpdates method. ProductPair is null!');
-    Bugsnag.notify(error);
+    Bugsnag.notify(util.inspect(error));
     throw error;
   }
 
@@ -108,7 +109,7 @@ function listenForPriceUpdates(productPair) {
       transactional_event: true,
       severity: ERROR_SEVERITY,
     });
-    Bugsnag.notify(errorMsg);
+    Bugsnag.notify(util.inspect(errorMsg));
     listenForPriceUpdates(productPair);
   });
 
@@ -140,7 +141,7 @@ function listenForPriceUpdates(productPair) {
           transactional_event: true,
           severity: ERROR_SEVERITY,
         });
-        Bugsnag.notify(new Error(error));
+        Bugsnag.notify(new Error(util.inspect(error)));
       }
       if (values) {
         try {
@@ -158,7 +159,7 @@ function listenForPriceUpdates(productPair) {
             transactional_event: true,
             severity: ERROR_SEVERITY,
           });
-          Bugsnag.notify(new Error(error));
+          Bugsnag.notify(util.inspect(new Error(error)));
         }
         try {
           const bbValue = await calculateBBInteractor.call(values);
@@ -203,7 +204,7 @@ try {
         transactional_event: true,
         severity: ERROR_SEVERITY,
       });
-      Bugsnag.notify(new Error('MongoDB connection error'));
+      Bugsnag.notify(util.inspect(new Error('MongoDB connection error')));
     },
 
   );
