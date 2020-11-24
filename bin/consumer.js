@@ -140,7 +140,7 @@ function listenForPriceUpdates(productPair) {
           transactional_event: true,
           severity: ERROR_SEVERITY,
         });
-        // Bugsnag.notify(new Error(error));
+        Bugsnag.notify(new Error(error));
       }
       if (values) {
         try {
