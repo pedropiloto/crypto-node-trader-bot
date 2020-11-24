@@ -42,11 +42,11 @@ async function trade(action, metric, value, currentPrice) {
     );
     if (success) {
       log({
-        message: 'sucessfully requested an order', action, status: success, metric, value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
+        message: 'sucessfully requested an order', action, status: true, metric, value, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
       });
     } else {
       log({
-        message: 'unsuccessful order', action, status: success, metric, value, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
+        message: 'unsuccessful order', action, status: false, metric, value, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
       });
     }
   } catch (error) {
@@ -69,9 +69,9 @@ function analyseRSI(value, currentPrice) {
   }
 }
 
-function analyseUpperBB(value, currentPrice) {
-  if (currentPrice > value) {
-    trade(SELL_ACTION, 'BB', value, currentPrice);
+function analyseUpperBB(differencePercentage, currentPrice) {
+  if (differencePercentage > 1) {
+    trade(SELL_ACTION, 'BB', differencePercentage, currentPrice);
   }
 }
 
@@ -164,11 +164,15 @@ function listenForPriceUpdates(productPair) {
         try {
           const bbValue = await calculateBBInteractor.call(values);
           if (bbValue) {
-            analyseUpperBB(bbValue.upper, currentPrice);
+            const difference = (
+              Number(currentPrice) - Number(bbValue.upper)
+            );
+            const differencePercentage = (difference / Number(bbValue.upper)) * 100;
+            analyseUpperBB(differencePercentage, currentPrice);
+            log({
+              message: 'BB calculated', upper_bb_value: bbValue.upper, current_price: currentPrice, difference_percentage: differencePercentage, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
+            });
           }
-          log({
-            message: 'BB calculated', upper_bb_value: bbValue.upper, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
-          });
         } catch (error) {
           log({
             message: 'Error during BB analysis',
