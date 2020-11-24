@@ -13,6 +13,7 @@ const { memoryMetric, cpuUsageMetric } = require('../metric');
 const Product = require('../models/product');
 const CalculateRSIInteractor = require('../interactors/calculate-rsi-interactor');
 const CalculateBBInteractor = require('../interactors/calculate-bb-interactor');
+const CoinbaseGateway = require('../gateways/coinbase-gateway');
 
 const key = `${process.env.API_KEY}`;
 const secret = `${process.env.API_SECRET}`;
@@ -31,6 +32,7 @@ const productInfo = new Product(
 const placeOrderInteractor = new PlaceOrderInteractor();
 const calculateRSIInteractor = new CalculateRSIInteractor(productInfo);
 const calculateBBInteractor = new CalculateBBInteractor(productInfo);
+const coinbaseGateway = new CoinbaseGateway();
 
 async function trade(action, metric, value, currentPrice) {
   try {
@@ -125,21 +127,57 @@ function listenForPriceUpdates(productPair) {
       log({
         message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
       });
-
-      const rsiValue = await calculateRSIInteractor.call();
-
-      log({
-        message: 'RSI calculated', rsi_value: Number(rsiValue), app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
-      });
-      analyseRSI(rsiValue, currentPrice);
-      const bbValue = await calculateBBInteractor.call();
-      if (bbValue) {
-        analyseUpperBB(bbValue.upper, currentPrice);
+      let values;
+      try {
+        values = (
+          await coinbaseGateway.getCandlesOneMinute(productInfo.productPair)
+        ).map((x) => x.close);
+      } catch (error) {
+        log({
+          message: `Error during fetching candles: ${error.stack}`,
+          app_name: appName,
+          type: OPERATIONAL_LOG_TYPE,
+          transactional_event: true,
+          severity: ERROR_SEVERITY,
+        });
+        // Bugsnag.notify(new Error(error));
       }
+      if (values) {
+        try {
+          const rsiValue = await calculateRSIInteractor.call(values);
 
-      log({
-        message: 'BB calculated', bb_value: bbValue, app_name: appName, type: BUSINESS_LOG_TYPE,
-      });
+          log({
+            message: 'RSI calculated', rsi_value: Number(rsiValue), app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
+          });
+          analyseRSI(rsiValue, currentPrice);
+        } catch (error) {
+          log({
+            message: 'Error during RSI analysis',
+            app_name: appName,
+            type: OPERATIONAL_LOG_TYPE,
+            transactional_event: true,
+            severity: ERROR_SEVERITY,
+          });
+          Bugsnag.notify(new Error(error));
+        }
+        try {
+          const bbValue = await calculateBBInteractor.call(values);
+          if (bbValue) {
+            analyseUpperBB(bbValue.upper, currentPrice);
+          }
+          log({
+            message: 'BB calculated', bb_value: bbValue, app_name: appName, type: BUSINESS_LOG_TYPE,
+          });
+        } catch (error) {
+          log({
+            message: 'Error during BB analysis',
+            app_name: appName,
+            type: OPERATIONAL_LOG_TYPE,
+            transactional_event: true,
+            severity: ERROR_SEVERITY,
+          });
+        }
+      }
     }
   });
 }

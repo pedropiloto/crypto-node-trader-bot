@@ -8,11 +8,8 @@ class CalculateBBInteractor {
     this.coinbaseGateway = new CoinbaseGateway();
   }
 
-  async call() {
-    // based on one minute interval candles
-    const values = (
-      await this.coinbaseGateway.getCandles(this.productInfo.productPair)
-    ).map((x) => x.close);
+  // eslint-disable-next-line class-methods-use-this
+  async call(values) {
     const bbArray = BollingerBands.calculate({
       period: 14,
       values,

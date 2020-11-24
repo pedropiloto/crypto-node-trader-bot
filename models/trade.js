@@ -99,6 +99,10 @@ TradeSchema.virtual('open_duration').get(function () {
 
 TradeSchema.set('toJSON', {
   virtuals: true,
+  transform(doc, ret) {
+    ret.rejected_sell_orders = ret.rejected_sell_orders.length;
+    delete ret.rejected_sell_orders;
+  },
 });
 
 module.exports = { TradeModel: mongoose.model('Trade', TradeSchema), STARTED, COMPLETED };
