@@ -166,7 +166,7 @@ function listenForPriceUpdates(productPair) {
             analyseUpperBB(bbValue.upper, currentPrice);
           }
           log({
-            message: 'BB calculated', bb_value: bbValue, app_name: appName, type: BUSINESS_LOG_TYPE,
+            message: 'BB calculated', upper_bb_value: bbValue.upper, current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE, transactional_event: true,
           });
         } catch (error) {
           log({
