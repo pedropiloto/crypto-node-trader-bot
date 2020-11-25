@@ -23,7 +23,6 @@ class GenerateSummaryInteractor {
     );
 
     result[symbol] = {};
-
     // Total Incomplete Trades
     result[symbol].incomplete_trades = incompleteTrades.length;
 
