@@ -35,6 +35,8 @@ class GenerateSummaryInteractor {
         );
       }
 
+      result[symbol] = {};
+
       enrichedTrades.forEach((trade) => {
         const totalBuy = trade.buy_fills.reduce((accumulator, current) => {
           const priceBig = new Big(current.price);
@@ -52,19 +54,14 @@ class GenerateSummaryInteractor {
           return new Big(accumulator).add(totalCost);
         }, 0);
 
-        if (!result[symbol]) result[symbol] = {};
         // Total Buy
-        result[symbol].total_buy
-          ? result[symbol].total_buy = (
-            (new Big(result[symbol].total_buy)).add((new Big(totalBuy)))
-          ).toString()
-          : result[symbol].total_buy = totalBuy.toString();
+        result[symbol].total_buy = result[symbol].total_buy
+          ? ((new Big(result[symbol].total_buy)).add((new Big(totalBuy)))).toString()
+          : totalBuy.toString();
         // Total Sell
-        result[symbol].total_sell
-          ? result[symbol].total_sell = ((
-            new Big(result[symbol].total_sell)).add((new Big(totalSell)))
-          ).toString()
-          : result[symbol].total_sell = totalSell.toString();
+        result[symbol].total_sell = result[symbol].total_sell
+          ? ((new Big(result[symbol].total_sell)).add((new Big(totalSell)))).toString()
+          : totalSell.toString();
         // Total Profit
         result[symbol].total_profit = (new Big(result[symbol].total_sell))
           .sub((new Big(result[symbol].total_buy))).toString();
