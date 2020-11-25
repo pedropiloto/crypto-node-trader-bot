@@ -14,12 +14,13 @@ class GenerateSummaryInteractor {
     const result = {};
     const enrichedTrades = [];
 
-    const trades = await TradeModel.find({});
+    const trades = await TradeModel.find();
 
-    const tradesSymbol = trades.filter((x) => x.symbol);
+    const tradesSymbol = trades.map((t) => t.symbol);
+    const uniqueTradesSymbol = [...new Set(tradesSymbol)];
 
-    for (let x = 0; x < tradesSymbol.length; x++) {
-      const symbol = tradesSymbol[x];
+    for (let x = 0; x < uniqueTradesSymbol.length; x++) {
+      const symbol = uniqueTradesSymbol[x];
 
       const completeTrades = await TradeModel.find({ symbol, status: COMPLETED });
       const incompleteTrades = await TradeModel.find({ symbol, status: STARTED });
