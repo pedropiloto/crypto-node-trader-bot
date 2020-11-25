@@ -22,6 +22,11 @@ class GenerateSummaryInteractor {
       { symbol, status: STARTED },
     );
 
+    result[symbol] = {};
+
+    // Total Incomplete Trades
+    result[symbol].incomplete_trades = incompleteTrades.length;
+
     for (let i = 0; i < completeTrades.length; i++) {
       const buyFills = await
       this.coinbaseGateway.getFillsByOrderId(completeTrades[i].buy_order_id);
@@ -31,8 +36,6 @@ class GenerateSummaryInteractor {
         Object.assign(completeTrades[i], { buy_fills: buyFills, sell_fills: sellFills }),
       );
     }
-
-    result[symbol] = {};
 
     enrichedTrades.forEach((trade) => {
       const totalBuy = trade.buy_fills.reduce((accumulator, current) => {
@@ -74,8 +77,6 @@ class GenerateSummaryInteractor {
         : result[symbol].total_sell_fills = 1;
       // Total Complete Trades
       result[symbol].complete_trades = enrichedTrades.length;
-      // Total Incomplete Trades
-      result[symbol].incomplete_trades = incompleteTrades.length;
     });
     return result;
   }
