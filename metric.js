@@ -3,7 +3,7 @@ const newrelic = require('newrelic');
 const memoryMetric = (appName) => {
   setInterval(() => {
     const stats = process.memoryUsage();
-    stats.app_Name = appName;
+    stats.app_name = appName;
     newrelic.recordCustomEvent('NodeMemory', stats);
   }, 5000);
 };
