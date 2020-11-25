@@ -128,6 +128,12 @@ function listenForPriceUpdates(productPair) {
       log({
         message: 'Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
       });
+      log({
+        message: 'Delaying analysing Ticker price', current_price: currentPrice, app_name: appName, type: BUSINESS_LOG_TYPE,
+      });
+      await (new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+      }));
       let values;
       try {
         values = (
