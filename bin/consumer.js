@@ -21,7 +21,7 @@ const secret = `${process.env.API_SECRET}`;
 const passphrase = `${process.env.API_PASSPHRASE}`;
 const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
-const appName = `${process.env.APP_NAME}`;
+const appName = `${process.env.APP_NAME}_${baseCurrency}_${quoteCurrency}`;
 
 // const websocketURI = "wss://ws-feed.pro.coinbase.com";
 // const websocketURI = "wss://ws-feed-public.sandbox.pro.coinbase.com";
@@ -191,7 +191,7 @@ function listenForPriceUpdates(productPair) {
 
 try {
   log({
-    message: 'starting', app_name: appName, type: OPERATIONAL_LOG_TYPE, transactional_event: true,
+    message: `starting ${appName}`, app_name: appName, type: OPERATIONAL_LOG_TYPE, transactional_event: true,
   });
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);

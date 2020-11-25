@@ -1,7 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-console */
 const Big = require('big.js');
-const Bugsnag = require('@bugsnag/js');
 const CoinbaseGateway = require('../gateways/coinbase-gateway');
 const { TradeModel, STARTED, COMPLETED } = require('../models/trade');
 const EstimatePriceInteractor = require('./estimate-price');
@@ -10,7 +9,7 @@ const {
   OPERATIONAL_LOG_TYPE, BUSINESS_LOG_TYPE, ERROR_SEVERITY, BUY_ACTION, SELL_ACTION,
 } = require('../utils/constants');
 
-const MAX_FUNDS_AMOUNT = 100;
+const MAX_FUNDS_AMOUNT = process.env.MAX_FUNDS_AMOUNT ? Number(process.env.MAX_FUNDS_AMOUNT) : 150;
 
 class PlaceOrderInteractor {
   constructor() {
