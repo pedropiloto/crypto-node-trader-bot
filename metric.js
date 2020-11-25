@@ -1,13 +1,14 @@
 const newrelic = require('newrelic');
 
-const memoryMetric = () => {
+const memoryMetric = (appName) => {
   setInterval(() => {
     const stats = process.memoryUsage();
+    stats.app_Name = appName;
     newrelic.recordCustomEvent('NodeMemory', stats);
   }, 5000);
 };
 
-const cpuUsageMetric = () => {
+const cpuUsageMetric = (appName) => {
   if (process.cpuUsage) {
     let lastUsage;
     // sampling interval in milliseconds
@@ -21,7 +22,7 @@ const cpuUsageMetric = () => {
         // calculate percentage
         const intervalInMicros = interval * 1000;
         const userPercent = ((usage.user - lastUsage.user) / intervalInMicros) * 100;
-        newrelic.recordCustomEvent('NodeCPU', { userPercent });
+        newrelic.recordCustomEvent('NodeCPU', { app_name: appName, userPercent });
       }
 
       lastUsage = usage;

@@ -196,8 +196,8 @@ try {
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);
   if (process.env.NODE_ENV === 'production') {
-    memoryMetric();
-    cpuUsageMetric();
+    memoryMetric(appName);
+    cpuUsageMetric(appName);
     Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
   }
   mongoose.connection.on(
