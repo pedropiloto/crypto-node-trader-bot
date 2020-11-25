@@ -7,8 +7,8 @@ class LookupTradesInteractor {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  call() {
-    return TradeModel.find({});
+  call(productInfo) {
+    return TradeModel.find({ symbol: productInfo.productPair });
   }
 }
 

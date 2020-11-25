@@ -20,7 +20,7 @@ const log = (params) => {
   }
   if (!params.app_name) {
     // eslint-disable-next-line no-param-reassign
-    params.app_name = `${process.env.APP_NAME}_${process.env.BASE_CURRENCY_NAME}_${process.env.QUOTE_CURRENCY_NAME}`;
+    params.app_name = `${process.env.APP_NAME}`;
   }
   if (params.type === BUSINESS_LOG_TYPE) {
     logger.debug(params);

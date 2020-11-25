@@ -21,7 +21,7 @@ const secret = `${process.env.API_SECRET}`;
 const passphrase = `${process.env.API_PASSPHRASE}`;
 const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
-const appName = `${process.env.APP_NAME}_${baseCurrency}_${quoteCurrency}`;
+const appName = `${process.env.APP_NAME}`;
 
 // const websocketURI = "wss://ws-feed.pro.coinbase.com";
 // const websocketURI = "wss://ws-feed-public.sandbox.pro.coinbase.com";

@@ -10,10 +10,17 @@ const { validateExecuteTradeRequest } = require('../utils/validate-execute-trade
 const Product = require('../models/product');
 const PlaceOrderInteractor = require('../interactors/place-order-interactor');
 
+const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
+const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
+
+const productInfo = new Product(
+  baseCurrency, quoteCurrency,
+);
+
 const getAll = async (req, res) => {
   const lookupTradesInteractor = new LookupTradesInteractor();
   try {
-    const trades = await lookupTradesInteractor.call();
+    const trades = await lookupTradesInteractor.call(productInfo);
     res.status(200).json(trades);
   } catch (error) {
     res.status(500).status({ error: error.stack });
@@ -29,8 +36,7 @@ const getAll = async (req, res) => {
 
 const execute = async (req, res) => {
   try {
-    const productInfo = new Product(req.body.base_currency, req.body.quote_currency);
-    if (validateExecuteTradeRequest(req.body, productInfo) === false) res.status(400).json({ error: 'Invalid Arguments' });
+    if (validateExecuteTradeRequest(req.body) === false) res.status(400).json({ error: 'Invalid Arguments' });
 
     const placeOrderInteractor = new PlaceOrderInteractor();
     const action = req.body.action === SELL_ACTION ? SELL_ACTION : BUY_ACTION;
@@ -68,7 +74,7 @@ const execute = async (req, res) => {
 const summary = async (req, res) => {
   const generateSummaryInteractor = new GenerateSummaryInteractor();
   try {
-    const result = await generateSummaryInteractor.call();
+    const result = await generateSummaryInteractor.call(productInfo);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).status({ error: error.stack });
