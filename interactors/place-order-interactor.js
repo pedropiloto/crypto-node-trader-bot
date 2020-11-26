@@ -39,24 +39,27 @@ class PlaceOrderInteractor {
       message: 'checking if it\'s possible to buy', type: BUSINESS_LOG_TYPE, open_trades_length: openTrades.length, can_buy: canBuy,
     });
     if (canBuy) {
+      const accounts = await this.coinbaseGateway.getAccounts();
+      const account = accounts.find((item) => item.currency === productInfo.quoteCurrency);
+      const funds = MAX_FUNDS_AMOUNT === -1 ? account.available : MAX_FUNDS_AMOUNT;
       log({
-        message: `placing buy order for ${productInfo.productPair} symbol ${MAX_FUNDS_AMOUNT} funds`,
+        message: `placing buy order for ${productInfo.productPair} symbol ${funds} funds`,
         type: BUSINESS_LOG_TYPE,
         symbol: productInfo.productPair,
-        funds: MAX_FUNDS_AMOUNT,
+        funds,
       });
       const order = await this.coinbaseGateway
-        .placeBuyOrder(productInfo.productPair, MAX_FUNDS_AMOUNT);
+        .placeBuyOrder(productInfo.productPair, funds);
 
       log({
         message: 'buy order completed',
         buy_order_id: order.id,
         type: BUSINESS_LOG_TYPE,
         symbol: productInfo.productPair,
-        funds: MAX_FUNDS_AMOUNT,
+        funds,
       });
       const buyEstimate = await this.estimatePriceInteractor
-        .call(productInfo, action, MAX_FUNDS_AMOUNT, undefined);
+        .call(productInfo, action, funds, undefined);
 
       const createdTrade = await TradeModel.create({
         symbol: productInfo.productPair,
@@ -70,7 +73,7 @@ class PlaceOrderInteractor {
         status: STARTED,
       });
       log({
-        message: `created trade ${createdTrade._id} symbol ${MAX_FUNDS_AMOUNT} funds`, type: BUSINESS_LOG_TYPE, trade_id: createdTrade._id, buy_order_id: order.id,
+        message: `created trade ${createdTrade._id} symbol ${funds} funds`, type: BUSINESS_LOG_TYPE, trade_id: createdTrade._id, buy_order_id: order.id,
       });
 
       return true;
