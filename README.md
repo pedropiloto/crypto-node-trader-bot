@@ -31,7 +31,6 @@ The bot has two main components:
 | MONGODB_URL           | MongoDB connection URL.                                                                        | YES      |
 | TRADE_BOT_API_KEY     | Value used to protect to the api exposed by the bot web component.                             | YES      |                                                          
 
-
 ## Test
 
 ```sh
