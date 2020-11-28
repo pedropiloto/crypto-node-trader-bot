@@ -21,8 +21,6 @@ const websocketURI = process.env.USE_SANDBOX
   ? 'wss://ws-feed-public.sandbox.pro.coinbase.com'
   : 'wss://ws-feed.pro.coinbase.com';
 
-console.log('cenas', websocketURI);
-
 const webSocketClose = (callback, productPair) => () => {
   log({
     message: 'WebSocket closed, restarting...', type: OPERATIONAL, transactional: true, severity: ERROR,
@@ -78,10 +76,10 @@ function listenForPriceUpdates(productPair) {
   );
 
   // turn on the websocket for errors
-  websocket.on('error', webSocketError(this, productPair));
+  websocket.on('error', webSocketError(listenForPriceUpdates, productPair));
 
   // Turn on the websocket for closes to restart it
-  websocket.on('close', webSocketClose(this, productPair));
+  websocket.on('close', webSocketClose(listenForPriceUpdates, productPair));
 
   // Turn on the websocket for messages
   websocket.on('message', WebSocketMessageInteractor);
