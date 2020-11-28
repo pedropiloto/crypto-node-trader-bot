@@ -17,9 +17,9 @@ const secret = `${process.env.API_SECRET}`;
 const passphrase = `${process.env.API_PASSPHRASE}`;
 const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
-const websocketURI = process.env.USE_SANDBOX
-  ? 'wss://ws-feed-public.sandbox.pro.coinbase.com'
-  : 'wss://ws-feed.pro.coinbase.com';
+const websocketURI = process.env.USE_SANDBOX === 'false'
+  ? 'wss://ws-feed.pro.coinbase.com'
+  : 'wss://ws-feed-public.sandbox.pro.coinbase.com';
 
 const webSocketClose = (callback, productPair) => () => {
   log({
@@ -28,18 +28,17 @@ const webSocketClose = (callback, productPair) => () => {
   callback(productPair);
 };
 
-const webSocketError = (callback, productPair) => (err) => {
+const webSocketError = (error) => {
   const message = 'Error occured in the websocket.';
-  const errorMsg = new Error(err);
   log({
     message,
-    error: errorMsg,
+    error,
     type: OPERATIONAL,
     transactional: true,
     severity: ERROR,
   });
-  Bugsnag.notify(util.inspect(errorMsg));
-  callback(productPair);
+  Bugsnag.notify(util.inspect(error));
+  process.exit(1);
 };
 
 const DBErrorHandler = () => {
@@ -76,7 +75,7 @@ function listenForPriceUpdates(productPair) {
   );
 
   // turn on the websocket for errors
-  websocket.on('error', webSocketError(listenForPriceUpdates, productPair));
+  websocket.on('error', webSocketError);
 
   // Turn on the websocket for closes to restart it
   websocket.on('close', webSocketClose(listenForPriceUpdates, productPair));
