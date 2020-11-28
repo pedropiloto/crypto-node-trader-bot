@@ -78,7 +78,7 @@ module.exports = async (data) => {
     let values;
     try {
       values = (
-        await coinbaseGateway.getCandlesOneMinute(productInfo.productPair)
+        await coinbaseGateway.getCandles(productInfo.productPair)
       ).map((x) => x.close);
     } catch (error) {
       log({
