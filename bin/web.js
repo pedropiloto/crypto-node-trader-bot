@@ -28,8 +28,9 @@ mongoose.connection.on(
   },
 
 );
-
-Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
+if (process.env.NODE_ENV === 'production' && process.env.BUSGNAG_API_KEY) {
+  Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
+}
 
 app.use(bodyParser.json());
 
@@ -46,7 +47,7 @@ app.use((req, res, next) => {
 });
 
 // handle errors
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   log({
     message: `server error ${err.stack}`,
     type: OPERATIONAL_LOG_TYPE,

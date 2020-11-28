@@ -17,7 +17,11 @@ const secret = `${process.env.API_SECRET}`;
 const passphrase = `${process.env.API_PASSPHRASE}`;
 const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
-const websocketURI = `${process.env.WEB_SOCKET_URI}`;
+const websocketURI = process.env.USE_SANDBOX
+  ? 'wss://ws-feed-public.sandbox.pro.coinbase.com'
+  : 'wss://ws-feed.pro.coinbase.com';
+
+console.log('cenas', websocketURI);
 
 const webSocketClose = (callback, productPair) => () => {
   log({
@@ -92,7 +96,7 @@ try {
 
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' && process.env.BUSGNAG_API_KEY) {
     memoryMetric();
     cpuUsageMetric();
     Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
