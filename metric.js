@@ -1,14 +1,18 @@
 const newrelic = require('newrelic');
+require('dotenv').config();
 
-const memoryMetric = (appName) => {
+const appName = `${process.env.APP_NAME}`;
+
+const memoryMetric = () => {
   setInterval(() => {
     const stats = process.memoryUsage();
     stats.app_name = appName;
+
     newrelic.recordCustomEvent('NodeMemory', stats);
   }, 5000);
 };
 
-const cpuUsageMetric = (appName) => {
+const cpuUsageMetric = () => {
   if (process.cpuUsage) {
     let lastUsage;
     // sampling interval in milliseconds
@@ -22,7 +26,10 @@ const cpuUsageMetric = (appName) => {
         // calculate percentage
         const intervalInMicros = interval * 1000;
         const userPercent = ((usage.user - lastUsage.user) / intervalInMicros) * 100;
-        newrelic.recordCustomEvent('NodeCPU', { app_name: appName, userPercent });
+        newrelic.recordCustomEvent('NodeCPU', {
+          app_name: appName,
+          userPercent,
+        });
       }
 
       lastUsage = usage;

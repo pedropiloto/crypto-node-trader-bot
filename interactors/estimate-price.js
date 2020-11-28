@@ -1,8 +1,5 @@
 /* eslint-disable no-console */
-const { default: Bugsnag } = require('@bugsnag/js');
 const CoinbaseGateway = require('../gateways/coinbase-gateway');
-const { OPERATIONAL_LOG_TYPE, ERROR_SEVERITY } = require('../utils/constants');
-const { log } = require('../utils/logger');
 
 class EstimatePriceInteractor {
   constructor() {

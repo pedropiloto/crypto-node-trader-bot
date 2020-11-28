@@ -10,9 +10,8 @@ const { log } = require('../utils/logger');
 const {
   OPERATIONAL_LOG_TYPE, ERROR_SEVERITY,
 } = require('../utils/constants');
-const auth = require('./middlewares/auth');
+const auth = require('../middlewares/auth');
 
-// database configuration
 const app = express();
 
 // connection to mongodb

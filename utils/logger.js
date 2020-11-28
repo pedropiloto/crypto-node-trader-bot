@@ -1,12 +1,12 @@
 const pino = require('pino');
 const newrelic = require('newrelic');
-const logzio = require('logzio-nodejs').createLogger({
+const logzio = `${process.env.LOGZIO_TOKEN}` ? require('logzio-nodejs').createLogger({
   token: `${process.env.LOGZIO_TOKEN}`,
   protocol: 'https',
   host: 'listener.logz.io',
   port: '8071',
   type: 'nodejs',
-});
+}) : undefined;
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info', prettyPrint: { colorize: true } });
 const {
@@ -27,21 +27,25 @@ const log = (params) => {
   } else {
     logger.info(params);
   }
-  logzio.log(params);
-  if (process.env.NODE_ENV === 'production') {
-    if (params.transactional) {
-      if (params.type === BUSINESS_LOG_TYPE) {
-        newrelic.recordCustomEvent('BusinessEvent', params);
-      }
-      if (params.type === OPERATIONAL_LOG_TYPE) {
-        newrelic.recordCustomEvent('OperationalEvent', params);
+  if (logzio) {
+    logzio.log(params);
+    if (process.env.NODE_ENV === 'production') {
+      if (params.transactional) {
+        if (params.type === BUSINESS_LOG_TYPE) {
+          newrelic.recordCustomEvent('BusinessEvent', params);
+        }
+        if (params.type === OPERATIONAL_LOG_TYPE) {
+          newrelic.recordCustomEvent('OperationalEvent', params);
+        }
       }
     }
   }
 };
 
 const sendAndCloseLogzio = () => {
-  logzio.sendAndClose();
+  if (logzio) {
+    logzio.sendAndClose();
+  }
 };
 
 module.exports = { log, sendAndCloseLogzio };

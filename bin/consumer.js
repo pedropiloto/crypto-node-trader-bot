@@ -1,6 +1,8 @@
 const CoinbasePro = require('coinbase-pro');
 const Bugsnag = require('@bugsnag/js');
 const util = require('util');
+require('dotenv').config();
+
 const Product = require('../models/product');
 const mongoose = require('../config/database');
 const { log, sendAndCloseLogzio } = require('../utils/logger');
@@ -9,19 +11,17 @@ const {
 } = require('../utils/constants');
 const { memoryMetric, cpuUsageMetric } = require('../metric');
 const WebSocketMessageInteractor = require('../interactors/websocket-message-interactor');
-require('dotenv').config();
 
 const key = `${process.env.API_KEY}`;
 const secret = `${process.env.API_SECRET}`;
 const passphrase = `${process.env.API_PASSPHRASE}`;
-const appName = `${process.env.APP_NAME}`;
 const baseCurrency = `${process.env.BASE_CURRENCY_NAME}`;
 const quoteCurrency = `${process.env.QUOTE_CURRENCY_NAME}`;
 const websocketURI = `${process.env.WEB_SOCKET_URI}`;
 
 const webSocketClose = (callback, productPair) => () => {
   log({
-    message: 'WebSocket closed, restarting...', type: OPERATIONAL_LOG_TYPE, transactional: true, severity: ERROR_SEVERITY,
+    message: 'WebSocket closed, restarting...', type: OPERATIONAL, transactional: true, severity: ERROR,
   });
   callback(productPair);
 };
@@ -32,9 +32,9 @@ const webSocketError = (callback, productPair) => (err) => {
   log({
     message,
     error: errorMsg,
-    type: OPERATIONAL_LOG_TYPE,
+    type: OPERATIONAL,
     transactional: true,
-    severity: ERROR_SEVERITY,
+    severity: ERROR,
   });
   Bugsnag.notify(util.inspect(errorMsg));
   callback(productPair);
@@ -43,7 +43,6 @@ const webSocketError = (callback, productPair) => (err) => {
 const DBErrorHandler = () => {
   log({
     message: 'MongoDB connection error',
-    app_name: appName,
     type: OPERATIONAL,
     transactional: true,
     severity: ERROR,
@@ -89,13 +88,13 @@ try {
     baseCurrency, quoteCurrency,
   );
 
-  log({ message: `starting ${appName}`, type: OPERATIONAL, transactional: true });
+  log({ message: 'starting', type: OPERATIONAL, transactional: true });
 
   // activate websocket for price data:
   listenForPriceUpdates(productInfo.productPair);
   if (process.env.NODE_ENV === 'production') {
-    memoryMetric(appName);
-    cpuUsageMetric(appName);
+    memoryMetric();
+    cpuUsageMetric();
     Bugsnag.start({ apiKey: `${process.env.BUSGNAG_API_KEY}` });
   }
 
