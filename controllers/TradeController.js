@@ -27,7 +27,7 @@ const getAll = async (req, res) => {
     log({
       message: `error fetching trades: ${error.stack}`,
       type: OPERATIONAL_LOG_TYPE,
-      transactional_event: true,
+      transactional: true,
       severity: ERROR_SEVERITY,
     });
     Bugsnag.notify(util.inspect(error));
@@ -47,11 +47,11 @@ const execute = async (req, res) => {
 
     if (success) {
       log({
-        message: 'sucessfully requested order', action, status: success, metric: req.body.metric, value: req.body.value, type: BUSINESS_LOG_TYPE, transactional_event: true,
+        message: 'sucessfully requested order', action, status: success, metric: req.body.metric, value: req.body.value, type: BUSINESS_LOG_TYPE, transactional: true,
       });
     } else {
       log({
-        message: 'unsuccessful order', action, status: success, metric: req.body.metric, value: req.body.value, type: BUSINESS_LOG_TYPE, transactional_event: true,
+        message: 'unsuccessful order', action, status: success, metric: req.body.metric, value: req.body.value, type: BUSINESS_LOG_TYPE, transactional: true,
       });
     }
 
@@ -64,7 +64,7 @@ const execute = async (req, res) => {
     log({
       message: `error fetching trades: ${error.stack}`,
       type: OPERATIONAL_LOG_TYPE,
-      transactional_event: true,
+      transactional: true,
       severity: ERROR_SEVERITY,
     });
     Bugsnag.notify(util.inspect(error));
@@ -81,7 +81,7 @@ const summary = async (req, res) => {
     log({
       message: `error fetching summary: ${error.stack}`,
       type: OPERATIONAL_LOG_TYPE,
-      transactional_event: true,
+      transactional: true,
       severity: ERROR_SEVERITY,
     });
     Bugsnag.notify(util.inspect(error));

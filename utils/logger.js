@@ -29,7 +29,7 @@ const log = (params) => {
   }
   logzio.log(params);
   if (process.env.NODE_ENV === 'production') {
-    if (params.transactional_event) {
+    if (params.transactional) {
       if (params.type === BUSINESS_LOG_TYPE) {
         newrelic.recordCustomEvent('BusinessEvent', params);
       }

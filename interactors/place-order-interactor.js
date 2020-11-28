@@ -24,7 +24,7 @@ class PlaceOrderInteractor {
       return this.sell(productInfo, action, metricValue, force);
     }
     log({
-      message: 'unknown action:', type: OPERATIONAL_LOG_TYPE, severity: ERROR_SEVERITY, transactional_event: true,
+      message: 'unknown action:', type: OPERATIONAL_LOG_TYPE, severity: ERROR_SEVERITY, transactional: true,
     });
     return false;
   }

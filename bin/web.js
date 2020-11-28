@@ -22,7 +22,7 @@ mongoose.connection.on(
     log({
       message: 'MongoDB connection error',
       type: OPERATIONAL_LOG_TYPE,
-      transactional_event: true,
+      transactional: true,
       severity: ERROR_SEVERITY,
     });
     Bugsnag.notify(util.inspect(new Error('MongoDB connection error')));
@@ -51,7 +51,7 @@ app.use((err, req, res, next) => {
   log({
     message: `server error ${err.stack}`,
     type: OPERATIONAL_LOG_TYPE,
-    transactional_event: true,
+    transactional: true,
     severity: ERROR_SEVERITY,
   });
 
@@ -65,6 +65,6 @@ app.listen(port, () => {
   log({
     message: `Node server listening on port ${port}`,
     type: OPERATIONAL_LOG_TYPE,
-    transactional_event: true,
+    transactional: true,
   });
 });

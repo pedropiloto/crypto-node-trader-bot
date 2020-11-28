@@ -13,7 +13,7 @@ class CoinbaseGateway {
   constructor() {
     const useSandbox = process.env.USE_SANDBOX === 'true';
     log({
-      message: `creating client to ${useSandbox ? 'sandbox' : 'production'} account`, type: OPERATIONAL_LOG_TYPE, transactional_event: true,
+      message: `creating client to ${useSandbox ? 'sandbox' : 'production'} account`, type: OPERATIONAL_LOG_TYPE, transactional: true,
     });
 
     this.client = new CoinbasePro(
