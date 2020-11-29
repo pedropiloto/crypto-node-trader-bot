@@ -27,10 +27,11 @@ class GenerateSummaryInteractor {
     result[symbol].incomplete_trades = incompleteTrades.length;
 
     for (let i = 0; i < completeTrades.length; i++) {
-      const buyFills = await
-      this.coinbaseGateway.getFillsByOrderId(completeTrades[i].buy_order_id);
-      const sellFills = await
-      this.coinbaseGateway.getFillsByOrderId(completeTrades[i].sell_order_id);
+      const [buyFills, sellFills] = await Promise.all(
+        [this.coinbaseGateway.getFillsByOrderId(completeTrades[i].buy_order_id),
+          this.coinbaseGateway.getFillsByOrderId(completeTrades[i].sell_order_id),
+        ],
+      );
       enrichedTrades.push(
         Object.assign(completeTrades[i], { buy_fills: buyFills, sell_fills: sellFills }),
       );
