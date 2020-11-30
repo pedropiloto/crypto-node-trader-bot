@@ -5,6 +5,7 @@ const CoinbaseGateway = require('../gateways/coinbase-gateway');
 const { TradeModel, STARTED, COMPLETED } = require('../models/trade');
 const EstimatePriceInteractor = require('./estimate-price');
 const { log } = require('../utils/logger');
+const { decimalAdjust } = require('../utils/calculation');
 const {
   OPERATIONAL_LOG_TYPE, BUSINESS_LOG_TYPE, ERROR_SEVERITY, BUY_ACTION, SELL_ACTION,
 } = require('../utils/constants');
@@ -41,7 +42,7 @@ class PlaceOrderInteractor {
     if (canBuy) {
       const accounts = await this.coinbaseGateway.getAccounts();
       const account = accounts.find((item) => item.currency === productInfo.quoteCurrency);
-      const funds = MAX_FUNDS_AMOUNT === -1 ? account.available : MAX_FUNDS_AMOUNT;
+      const funds = MAX_FUNDS_AMOUNT === -1 ? decimalAdjust('floor', account.available, -4) : MAX_FUNDS_AMOUNT;
       log({
         message: `placing buy order for ${productInfo.productPair} symbol ${funds} funds`,
         type: BUSINESS_LOG_TYPE,
