@@ -42,7 +42,7 @@ class PlaceOrderInteractor {
     if (canBuy) {
       const accounts = await this.coinbaseGateway.getAccounts();
       const account = accounts.find((item) => item.currency === productInfo.quoteCurrency);
-      const funds = MAX_FUNDS_AMOUNT === -1 ? decimalAdjust('floor', account.available, -4) : MAX_FUNDS_AMOUNT;
+      const funds = MAX_FUNDS_AMOUNT === -1 ? decimalAdjust('floor', account.available, -2) : MAX_FUNDS_AMOUNT;
       log({
         message: `placing buy order for ${productInfo.productPair} symbol ${funds} funds`,
         type: BUSINESS_LOG_TYPE,
